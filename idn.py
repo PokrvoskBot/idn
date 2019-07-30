@@ -6,31 +6,42 @@ import logging
 import pprint
 from oauth2client.service_account import ServiceAccountCredentials
 import json
+import requests
 pp = pprint.PrettyPrinter()
 
 
-NAILS = '88d640bc-6e0a-2f8e-7756-ac215fb12516'  #код категории ногтей
+
 
 scope = ["https://spreadsheets.google.com/feeds",'https://www.googleapis.com/auth/spreadsheets',"https://www.googleapis.com/auth/drive.file","https://www.googleapis.com/auth/drive"]
 creds = ServiceAccountCredentials.from_json_keyfile_name("KeyG.json", scope)
 client = gspread.authorize(creds)
 sheet = client.open("idn").sheet1 # Open the spreadhseet
-
-import requests
-
 url = "https://api.aihelps.com/v1/services"
-
 querystring = {"fields":"name,duration,category,price_currency,prices"}
-
 headers = {
     'Authorization': "Bearer 46de41d0-7085-4443-9d0b-7b94e9198b6d"
     }
 
 all_services = requests.request("GET", url, headers=headers, params=querystring)
-jall_services = json.loads(all_services.text) #все услуги
-nogti = list(filter(lambda x: x['category'] == NAILS, jall_services))
-nogti_clear = list(map(lambda x: { x['name']: x['prices']['88d640bc-ae28-9810-7756-ac2162d452a2']}, nogti))
-pp.pprint(nogti_clear)
+data = json.loads(all_services.text) #все услуги
+for service in data:
+    NAILS = '88d640bc-6e0a-2f8e-7756-ac215fb12516'  # код категории
+    if service['category'] == NAILS:
+        tupleNilsList = service['name'],list(service['prices'].values())[0]
+        nailsList = list(tupleNilsList)
+
+
+
+
+
+
+        #print(service['name'],list(service['prices'].values())[0])
+        print(nailsList)
+
+
+#nogti = list(filter(lambda x: x['category'] == NAILS, jall_services))
+#nogti_clear = list(map(lambda x: { x['name']: x['prices']['88d640bc-ae28-9810-7756-ac2162d452a2']}, nogti))
+#pp.pprint(data)
 
 
 bot = telebot.TeleBot("888444353:AAEUFDsBrmHfzN1SccAiBLXhnpDONX373f8")
@@ -107,15 +118,9 @@ def main_menu(message):
 def services(call):
 
     if call.data == 'CallNails':
-
-        filtered_all = []  # Фильтруем список из всех часы и уши
-        for item in nogti_clear():
-            all_ = item['name']
-            filtered_all.append(all_)
-
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="\n".join(filtered_all), reply_markup=kbCategory)
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=(", " . join(map(nailsList2))), reply_markup=kbCategory)
     if call.data == '0':
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='new0')
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='СТОМАТОЛОГ АГА', reply_markup=kbCategory)
 
 
 
